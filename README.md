@@ -1,4 +1,11 @@
 
+# THIS IS A FORK
+
+The fork adds support for follow redirect response.
+
+
+
+
 Will It Connect?
 ================
 [![wercker status](https://app.wercker.com/status/95669acf2b99f3b76662dd01e0696d37/m "wercker status")](https://app.wercker.com/project/bykey/95669acf2b99f3b76662dd01e0696d37)
