@@ -3,6 +3,12 @@
 
 The fork adds support for follow redirect response.
 
+To build
+```
+gradle build -x test
+```
+Version number is 2.x to be distinct from upstream
+
 
 
 
