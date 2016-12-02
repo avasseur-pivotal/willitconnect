@@ -66,17 +66,19 @@ Result.propTypes = {
 const Entry = ({
   success,
   httpStatus,
+  httpExtra,
   time,
 }) =>
   <ul>
     <li>  On {time}, I {success ? 'could' : 'could not'} connect.
-      {httpStatus !== 0 && <span>Http Status: {httpStatus}</span>}
+      {httpStatus !== 0 && <span>Http Status: {httpStatus} {httpExtra}</span>}
     </li>
   </ul>;
 
 Entry.propTypes = {
   success: React.PropTypes.string,
   httpStatus: React.PropTypes.number,
+  httpExtra: React.PropTypes.string,
   time: React.PropTypes.string,
 };
 
@@ -96,6 +98,7 @@ const StatelessEntry = (props) => {
           key={attempt.id}
           success={attempt.canConnect}
           httpStatus={attempt.httpStatus}
+          httpExtra={attempt.httpExtra}
           time={(new Date(attempt.time)).toLocaleString()}
         />
       );

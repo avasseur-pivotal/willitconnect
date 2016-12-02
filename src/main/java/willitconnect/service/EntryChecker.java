@@ -16,6 +16,7 @@ import willitconnect.service.util.Connection;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.*;
 import java.sql.Date;
 import java.time.Instant;
 
@@ -30,6 +31,7 @@ class CustomResponseErrorHandler implements ResponseErrorHandler {
     }
 
     public void handleError(ClientHttpResponse response) throws IOException {
+	getLogger(EntryChecker.class).info("ALEX error "+ response);	
     }
 }
 
@@ -50,7 +52,7 @@ public class EntryChecker {
         } else if (e.isValidHostname()) {
             checkHostname(e);
         } else {
-            log.error(e.getEntry() + " is not a valid hostname");
+            log.info(e.getEntry() + " is not a valid hostname");
         }
         return e;
     }
@@ -78,8 +80,12 @@ public class EntryChecker {
                 oldFactory = swapProxy(e);
             }
 
+		log.info("ALEX restTemplate");
+
             ResponseEntity<String> resp =
                     restTemplate.getForEntity(e.getEntry(), String.class);
+		
+		log.info("ALEX resp");
 
             if ( null != oldFactory ) {
                 restTemplate.setRequestFactory(oldFactory);
@@ -88,25 +94,45 @@ public class EntryChecker {
             log.info("Status = " + resp.getStatusCode());
             e.setCanConnect(true);
             e.setHttpStatus(resp.getStatusCode());
+       	    if (resp.getHeaders().getLocation() != null) e.setHttpExtra(resp.getHeaders().getLocation().toString());
         } catch (ResourceAccessException ex) {
             e.setCanConnect(false);
-        }
+		log.info("ALEX error", ex);
+        } catch (Throwable t) {
+		e.setCanConnect(false);
+		log.info("ALEX error", t);
+	}
+	log.info("ALEX DONE!!");
         e.setLastChecked(Date.from(Instant.now()));
     }
 
     private ClientHttpRequestFactory swapProxy(CheckedEntry e) {
         ClientHttpRequestFactory oldFactory = restTemplate.getRequestFactory();
 
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
+		protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+			super.prepareConnection(connection, httpMethod);
+			connection.setInstanceFollowRedirects(true);
+		} };
+
+	requestFactory.setReadTimeout(2000);
+        requestFactory.setConnectTimeout(2000);
+
+
 
         Proxy proxy= new Proxy(Proxy.Type.HTTP,
                 new InetSocketAddress(
                     e.getHttpProxy().split(":")[0],
                     Integer.parseInt(e.getHttpProxy().split(":")[1]
                     )));
+	log.info("Proxy found : " + e.getHttpProxy());
         log.info("Using proxy " + proxy + " for " + e.getEntry());
         requestFactory.setProxy(proxy);
 
+	restTemplate.setRequestFactory(requestFactory);
+
+
+	log.info("proxy done");
         return oldFactory;
     }
 

@@ -21,6 +21,8 @@ const hostPort = (host, port) => {
   if (host && port) {
     return `${host}:${port}`;
   }
+  // ALEX
+  if (host) return `${host}`;
   return undefined;
 };
 
